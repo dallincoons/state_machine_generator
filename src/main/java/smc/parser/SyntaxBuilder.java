@@ -14,28 +14,8 @@ public class SyntaxBuilder implements Builder {
         fsm = new FsmSyntax();
     }
 
-    public void headerError(ParserState state, ParserEvent event, int line, int pos) {
-        fsm.errors.add(new SyntaxError(HEADER, state+"|"+event, line, pos));
-    }
-
-    public void stateError(ParserState state, ParserEvent event, int line, int pos) {
-        fsm.errors.add(new SyntaxError(STATE, state+"|"+event, line, pos));
-    }
-
-    public void transitionError(ParserState state, ParserEvent event, int line, int pos) {
-        fsm.errors.add(new SyntaxError(TRANSITION, state+"|"+event, line, pos));
-    }
-
-    public void transitionGroupError(ParserState state, ParserEvent event, int line, int pos) {
-        fsm.errors.add(new SyntaxError(TRANSITION_GROUP, state+"|"+event, line, pos));
-    }
-
-    public void endError(ParserState state, ParserEvent event, int line, int pos) {
-        fsm.errors.add(new SyntaxError(END, state+"|"+event, line, pos));
-    }
-
-    public void syntaxError(int line, int pos) {
-        fsm.errors.add(new SyntaxError(SYNTAX, "", line, pos));
+    public FsmSyntax getFsm() {
+        return fsm;
     }
 
     @Override
@@ -118,7 +98,27 @@ public class SyntaxBuilder implements Builder {
         transition.state.superStates.add(parsedName);
     }
 
-    public FsmSyntax getFsm() {
-        return fsm;
+    public void headerError(ParserState state, ParserEvent event, int line, int pos) {
+        fsm.errors.add(new SyntaxError(HEADER, state+"|"+event, line, pos));
+    }
+
+    public void stateError(ParserState state, ParserEvent event, int line, int pos) {
+        fsm.errors.add(new SyntaxError(STATE, state+"|"+event, line, pos));
+    }
+
+    public void transitionError(ParserState state, ParserEvent event, int line, int pos) {
+        fsm.errors.add(new SyntaxError(TRANSITION, state+"|"+event, line, pos));
+    }
+
+    public void transitionGroupError(ParserState state, ParserEvent event, int line, int pos) {
+        fsm.errors.add(new SyntaxError(TRANSITION_GROUP, state+"|"+event, line, pos));
+    }
+
+    public void endError(ParserState state, ParserEvent event, int line, int pos) {
+        fsm.errors.add(new SyntaxError(END, state+"|"+event, line, pos));
+    }
+
+    public void syntaxError(int line, int pos) {
+        fsm.errors.add(new SyntaxError(SYNTAX, "", line, pos));
     }
 }

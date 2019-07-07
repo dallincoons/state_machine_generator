@@ -2,6 +2,7 @@ package smc.parser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class FsmSyntax {
     public List<Header> headers = new ArrayList<>();
@@ -10,10 +11,31 @@ public class FsmSyntax {
     public boolean done = false;
 
     public static class Header {
+        public static Header NullHeader() {
+            return new Header(null, null);
+        }
+
         public String name;
         public String value;
 
         public Header() {
+        }
+
+        public Header(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+
+//        public int hashCode() {
+//            return Objects.hash(name, value);
+//        }
+
+        public boolean equals(Object obj) {
+            if (obj instanceof Header) {
+                Header other = (Header) obj;
+                return Objects.equals(other.name, name) && Objects.equals(other.value, value);
+            }
+            return false;
         }
     }
 
