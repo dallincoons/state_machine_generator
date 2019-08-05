@@ -4,7 +4,13 @@ import java.util.*;
 
 public class SemanticStateMachine {
     public List<AnalysisError> errors = new ArrayList<>();
+    public List<AnalysisError> warnings = new ArrayList<>();
     public SortedMap<String, SemanticState> states = new TreeMap<>();
+    public Set<String> events = new HashSet<>();
+    public Set<String> actions = new HashSet<>();
+    public SemanticState initialState;
+    public String actionClass;
+    public String fsmName;
 
     public void addError(AnalysisError analysisError) {
         errors.add(analysisError);
@@ -57,6 +63,11 @@ public class SemanticStateMachine {
 
     public static class SemanticState implements Comparable<SemanticState> {
         public String name;
+        public List<String> entryActions = new ArrayList<>();
+        public List<String> exitActions = new ArrayList<>();
+        public boolean abstractState = false;
+        public SortedSet<SemanticState> superStates = new TreeSet<>();
+        public List<SemanticTransition> transitions = new ArrayList<>();
 
         public SemanticState(String name) {
             this.name = name;
