@@ -16,6 +16,14 @@ public class SemanticStateMachine {
         errors.add(analysisError);
     }
 
+    public String statesToString() {
+        String statesString = "{";
+        for (SemanticState state : states.values()) {
+            statesString += state.toString();
+        }
+        return statesString + "}\n";
+    }
+
     public static class AnalysisError {
         public enum ID {
             NO_FSM,
@@ -71,6 +79,71 @@ public class SemanticStateMachine {
 
         public SemanticState(String name) {
             this.name = name;
+        }
+
+        public boolean equals(Object obj) {
+            if (obj instanceof SemanticState) {
+                SemanticState other = (SemanticState) obj;
+                return
+                        Objects.equals(other.name, name) &&
+                                Objects.equals(other.entryActions, entryActions) &&
+                                Objects.equals(other.exitActions, exitActions) &&
+                                Objects.equals(other.superStates, superStates) &&
+                                Objects.equals(other.transitions, transitions) &&
+                                other.abstractState == abstractState;
+            } else
+                return false;
+        }
+
+        public String toString() {
+            return
+                String.format("\n  %s {\n%s  }\n",
+                    makeStateNameWithAdornments(),
+                    makeTransitionStrings()
+                );
+        }
+
+        private String makeStateNameWithAdornments() {
+            String stateName = "";
+            stateName += abstractState ? ("(" + name + ")") : name;
+            for (SemanticState superState : superStates) {
+                stateName += " :" + superState.name;
+            }
+            for (String entryAction : entryActions) {
+                stateName += " <" + entryAction;
+            }
+            for (String exitAction : exitActions) {
+                stateName += " >" + exitAction;
+            }
+            return stateName;
+        }
+
+        private String makeTransitionStrings() {
+            String transitionStrings = "";
+
+            for (SemanticTransition st : transitions) {
+                transitionStrings += makeTransitionString(st);
+            }
+
+            return transitionStrings;
+        }
+
+        private String makeTransitionString(SemanticTransition st) {
+            return String.format("    %s %s {%s}\n", st.event, makeNextStateName(st), makeActions(st));
+        }
+
+        private String makeNextStateName(SemanticTransition st) {
+            return st.nextState == null ? "null" : st.nextState.name;
+        }
+
+        private String makeActions(SemanticTransition st) {
+            String actions = "";
+            boolean firstAction = true;
+            for (String action : st.actions) {
+                actions += (firstAction ? "" : " ") + action;
+                firstAction = false;
+            }
+            return actions;
         }
 
         public int compareTo(SemanticState s) {

@@ -85,9 +85,34 @@ public class SemanticAnalyzer {
 
     private void createStateEventAndActionLists(FsmSyntax fsm) {
         addStateNamesToStateList(fsm);
-//        addEntryAndExitActionsToActionList(fsm);
-//        addEventsToEventList(fsm);
-//        addTransitionActionsToActionList(fsm);
+        addEntryAndExitActionsToActionList(fsm);
+        addEventsToEventList(fsm);
+        addTransitionActionsToActionList(fsm);
+    }
+
+    private void addEntryAndExitActionsToActionList(FsmSyntax fsm) {
+        for (Transition t : fsm.logic) {
+            semanticStateMachine.actions.addAll(t.state.entryActions);
+            semanticStateMachine.actions.addAll(t.state.exitActions);
+        }
+    }
+
+    private void addEventsToEventList(FsmSyntax fsm) {
+        for (Transition t : fsm.logic) {
+            for (SubTransition st : t.subTransitions) {
+                if (st.event != null) {
+                    semanticStateMachine.events.add(st.event);
+                }
+            }
+        }
+    }
+
+    private void addTransitionActionsToActionList(FsmSyntax fsm) {
+        for (Transition t : fsm.logic) {
+            for (SubTransition st : t.subTransitions) {
+                semanticStateMachine.actions.addAll(st.actions);
+            }
+        }
     }
 
     private void addStateNamesToStateList(FsmSyntax fsm) {
