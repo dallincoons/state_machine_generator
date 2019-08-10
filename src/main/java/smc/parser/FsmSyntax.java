@@ -1,8 +1,6 @@
 package smc.parser;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class FsmSyntax {
     public List<Header> headers = new ArrayList<>();
@@ -80,6 +78,18 @@ public class FsmSyntax {
         }
 
         public enum Type {HEADER, STATE, TRANSITION, TRANSITION_GROUP, END, SYNTAX}
+    }
+
+    public Set<String> getAbstractStates() {
+        Set<String> abstractStates = new HashSet<>();
+
+        for (Transition t : this.logic) {
+            if (t.state.abstractState) {
+                abstractStates.add(t.state.name);
+            }
+        }
+
+        return abstractStates;
     }
 
     public String toString() {
@@ -187,6 +197,7 @@ public class FsmSyntax {
                 error.lineNumber,
                 error.position);
     }
+
 
     public String getError() {
         return formatErrors();

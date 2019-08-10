@@ -77,6 +77,10 @@ public class SemanticAnalyzer {
         createStateEventAndActionLists(fsm);
         checkUndefinedStates(fsm);
         checkForUnusedStates(fsm);
+        checkForDuplicateTransitions(fsm);
+        checkThatAbstractStatesAreNotTargets(fsm);
+        checkForInconsistentAbstraction(fsm);
+        checkForMultiplyDefinedStateActions(fsm);
     }
 
     private void createStateEventAndActionLists(FsmSyntax fsm) {
@@ -133,6 +137,87 @@ public class SemanticAnalyzer {
         for (String definedState : semanticStateMachine.states.keySet())
             if (!usedStates.contains(definedState))
                 semanticStateMachine.errors.add(new AnalysisError(UNUSED_STATE, definedState));
+    }
+
+    private void checkForDuplicateTransitions(FsmSyntax fsm) {
+        Set<String> transitionKeys = new HashSet<>();
+        for (Transition t : fsm.logic) {
+            for (SubTransition st : t.subTransitions) {
+                String key = String.format("%s(%s)", t.state.name, st.event);
+                if (transitionKeys.contains(key)) {
+                    semanticStateMachine.errors.add(new AnalysisError(DUPLICATE_TRANSITION, key));
+                } else {
+                    transitionKeys.add(key);
+                }
+            }
+        }
+    }
+
+    private void checkThatAbstractStatesAreNotTargets(FsmSyntax fsm) {
+        Set<String> abstractStates = fsm.getAbstractStates();
+        for (Transition t : fsm.logic) {
+            for (SubTransition st : t.subTransitions) {
+                if (abstractStates.contains(st.nextState)) {
+                    semanticStateMachine.errors.add(
+                        new AnalysisError(
+                            ABSTRACT_STATE_USED_AS_NEXT_STATE,
+                            String.format("%s(%s)->%s", t.state.name, st.event, st.nextState))
+                        );
+                }
+            }
+        }
+    }
+
+    private void checkForInconsistentAbstraction(FsmSyntax fsm) {
+        Set<String> abstractStates = fsm.getAbstractStates();
+        for (Transition t : fsm.logic) {
+            if (!t.state.abstractState && abstractStates.contains(t.state.name)) {
+                semanticStateMachine.warnings.add(
+                    new AnalysisError(
+                        INCONSISTENT_ABSTRACTION,
+                        t.state.name)
+                );
+            }
+        }
+    }
+
+    private void checkForMultiplyDefinedStateActions(FsmSyntax fsm)
+    {
+        Map<String, String> firstActionsForState = new HashMap<>();
+        for (Transition t : fsm.logic) {
+            if (specifiesStateActions(t)) {
+                String actionsKey = makeActionsKey(t);
+                if (firstActionsForState.containsKey(t.state.name)) {
+                    if (!firstActionsForState.get(t.state.name).equals(actionsKey)) {
+                        semanticStateMachine.errors.add(new AnalysisError(STATE_ACTIONS_MULTIPLY_DEFINED, t.state.name));
+                    }
+                } else {
+                    firstActionsForState.put(t.state.name, actionsKey);
+                }
+            }
+        }
+    }
+
+    private boolean specifiesStateActions(Transition t) {
+        return t.state.entryActions.size() != 0 || t.state.exitActions.size() != 0;
+    }
+
+    private String makeActionsKey(Transition t) {
+        List<String> actions = new ArrayList<>();
+        actions.addAll(t.state.entryActions);
+        actions.addAll(t.state.exitActions);
+        return commaList(actions);
+    }
+
+    private String commaList(List<String> list) {
+        String commaList = "";
+        if (list.size() == 0) {
+            return "";
+        }
+        for (String s : list) {
+            commaList += s + ',';
+        }
+        return commaList.substring(0, commaList.length() - 1);
     }
 
     private Set<String> getNextStates(FsmSyntax fsm) {

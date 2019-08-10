@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import smc.lexer.Lexer;
-import smc.parser.Builder;
 import smc.parser.Parser;
 import smc.parser.SyntaxBuilder;
 
@@ -13,9 +12,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsCollectionContaining.hasItems;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.hasItems;
 import static smc.parser.FsmSyntax.Header;
 import static smc.parser.ParserEvent.EOF;
 import static smc.semanticAnalyzer.SemanticStateMachine.AnalysisError;
@@ -114,109 +111,206 @@ public class semanticAnalyzerTest {
                 ));
             }
         }
-    }
 
-    public class StateErrors {
-        @Test
-        public void nullNextStateIsNotUndefined() throws Exception {
-            List<AnalysisError> errors = produceAst("{s - - -}").errors;
-            assertThat(errors, not(hasItems(
-                new AnalysisError(UNDEFINED_STATE, null)
-            )));
-        }
+        public class StateErrors {
+            @Test
+            public void nullNextStateIsNotUndefined() throws Exception {
+                List<AnalysisError> errors = produceAst("{s - - -}").errors;
+                assertThat(errors, not(hasItems(
+                    new AnalysisError(UNDEFINED_STATE, null)
+                )));
+            }
 
-        @Test
-        public void undefinedState() throws Exception {
-            List<AnalysisError> errors = produceAst("{s - s2 -}").errors;
-            assertThat(errors, hasItems(
-                new AnalysisError(UNDEFINED_STATE, "s2")
-            ));
-        }
+            @Test
+            public void undefinedState() throws Exception {
+                List<AnalysisError> errors = produceAst("{s - s2 -}").errors;
+                assertThat(errors, hasItems(
+                    new AnalysisError(UNDEFINED_STATE, "s2")
+                ));
+            }
 
-        @Test
-        public void noUndefinedState() throws Exception {
-            List<AnalysisError> errors = produceAst("{s - s -}").errors;
-            assertThat(errors, not(hasItems(
-                new AnalysisError(UNDEFINED_STATE)
-            )));
-        }
+            @Test
+            public void noUndefinedState() throws Exception {
+                List<AnalysisError> errors = produceAst("{s - s -}").errors;
+                assertThat(errors, not(hasItems(
+                    new AnalysisError(UNDEFINED_STATE)
+                )));
+            }
 
-        @Test
-        public void noUndefinedStates() throws Exception {
-            List<AnalysisError> errors = produceAst("{s - s -}").errors;
-            assertThat(errors, not(hasItems(new AnalysisError(UNDEFINED_STATE, "s2"))));
-        }
+            @Test
+            public void noUndefinedStates() throws Exception {
+                List<AnalysisError> errors = produceAst("{s - s -}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(UNDEFINED_STATE, "s2"))));
+            }
 
-        @Test
-        public void undefinedSuperState() throws Exception {
-            List<AnalysisError> errors = produceAst("{s:ss - - -}").errors;
-            assertThat(errors, hasItems(new AnalysisError(UNDEFINED_SUPER_STATE, "ss")));
-        }
+            @Test
+            public void undefinedSuperState() throws Exception {
+                List<AnalysisError> errors = produceAst("{s:ss - - -}").errors;
+                assertThat(errors, hasItems(new AnalysisError(UNDEFINED_SUPER_STATE, "ss")));
+            }
 
-        @Test
-        public void superStateDefined() throws Exception {
-            List<AnalysisError> errors = produceAst("{ss - - - s:ss - - -}").errors;
-            assertThat(errors, not(hasItems(new AnalysisError(UNDEFINED_SUPER_STATE, "s2"))));
-        }
+            @Test
+            public void superStateDefined() throws Exception {
+                List<AnalysisError> errors = produceAst("{ss - - - s:ss - - -}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(UNDEFINED_SUPER_STATE, "s2"))));
+            }
 
-        @Test
-        public void unusedStates() throws Exception {
-            List<AnalysisError> errors = produceAst("{s e n -}").errors;
-            assertThat(errors, hasItems(new AnalysisError(UNUSED_STATE, "s")));
-        }
+            @Test
+            public void unusedStates() throws Exception {
+                List<AnalysisError> errors = produceAst("{s e n -}").errors;
+                assertThat(errors, hasItems(new AnalysisError(UNUSED_STATE, "s")));
+            }
 
-        @Test
-        public void noUnusedStates() throws Exception {
-            List<AnalysisError> errors = produceAst("{s e s -}").errors;
-            assertThat(errors, not(hasItems(new AnalysisError(UNUSED_STATE, "s"))));
-        }
+            @Test
+            public void noUnusedStates() throws Exception {
+                List<AnalysisError> errors = produceAst("{s e s -}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(UNUSED_STATE, "s"))));
+            }
 
-        @Test
-        public void nextStateNullIsImplicitUsed() throws Exception {
-            List<AnalysisError> errors = produceAst("{s e - -}").errors;
-            assertThat(errors, not(hasItems(new AnalysisError(UNUSED_STATE, "s"))));
-        }
+            @Test
+            public void nextStateNullIsImplicitUsed() throws Exception {
+                List<AnalysisError> errors = produceAst("{s e - -}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(UNUSED_STATE, "s"))));
+            }
 
-        @Test
-        public void usedAsBaseIsValidUsage() throws Exception {
-            List<AnalysisError> errors = produceAst("{b e n - s:b e2 s -}").errors;
-            assertThat(errors, not(hasItems(new AnalysisError(UNUSED_STATE, "b"))));
-        }
+            @Test
+            public void usedAsBaseIsValidUsage() throws Exception {
+                List<AnalysisError> errors = produceAst("{b e n - s:b e2 s -}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(UNUSED_STATE, "b"))));
+            }
 
-        @Test
-        public void usedAsInitialIsValidUsage() throws Exception {
-            List<AnalysisError> errors = produceAst("initial: b {b e n -}").errors;
-            assertThat(errors, not(hasItems(new AnalysisError(UNUSED_STATE, "b"))));
-        }
+            @Test
+            public void usedAsInitialIsValidUsage() throws Exception {
+                List<AnalysisError> errors = produceAst("initial: b {b e n -}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(UNUSED_STATE, "b"))));
+            }
 
-        @Test
-        public void errorIfSuperStatesHaveConflictingTransitions() throws Exception {
-            List<AnalysisError> errors = produceAst(
-                 "" +
-                    "FSM: f Actions: act Initial: s" +
-                    "{" +
-                    "  (ss1) e1 s1 -" +
-                    "  (ss2) e1 s2 -" +
-                    "  s :ss1 :ss2 e2 s3 a" +
-                    "  s2 e s -" +
-                    "  s1 e s -" +
-                    "  s3 e s -" +
-                    "}").errors;
-            assertThat(errors, hasItems(new AnalysisError(CONFLICTING_SUPERSTATES, "s|e1")));
-        }
+            @Test
+            public void errorIfSuperStatesHaveConflictingTransitions() throws Exception {
+                List<AnalysisError> errors = produceAst(
+                     "" +
+                        "FSM: f Actions: act Initial: s" +
+                        "{" +
+                        "  (ss1) e1 s1 -" +
+                        "  (ss2) e1 s2 -" +
+                        "  s :ss1 :ss2 e2 s3 a" +
+                        "  s2 e s -" +
+                        "  s1 e s -" +
+                        "  s3 e s -" +
+                        "}").errors;
+                assertThat(errors, hasItems(new AnalysisError(CONFLICTING_SUPERSTATES, "s|e1")));
+            }
 
+            @Test
+            public void noErrorForOverriddenTransition() throws Exception {
+                List<AnalysisError> errors = produceAst(
+                        "" +
+                        "FSM: f Actions: act Initial: s" +
+                        "{" +
+                        "  (ss1) e1 s1 -" +
+                        "  s :ss1 e1 s3 a" +
+                        "  s1 e s -" +
+                        "  s3 e s -" +
+                        "}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(CONFLICTING_SUPERSTATES, "s|e1"))));
+            }
+
+            @Test
+            public void noErrorIfSuperStatesHaveIdenticalTransitions() throws Exception {
+                List<AnalysisError> errors = produceAst(
+                        "" +
+                                "FSM: f Actions: act Initial: s" +
+                                "{" +
+                                "  (ss1) e1 s1 ax" +
+                                "  (ss2) e1 s1 ax" +
+                                "  s :ss1 :ss2 e2 s3 a" +
+                                "  s1 e s -" +
+                                "  s3 e s -" +
+                                "}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(CONFLICTING_SUPERSTATES, "s|e1"))));
+            }
+
+            @Test
+            public void errorIfSuperstatesHaveDifferentActionsInSameTransitions() throws Exception {
+                List<AnalysisError> errors = produceAst(
+                        "" +
+                                "FSM: f Actions: act Initial: s" +
+                                "{" +
+                                "  (ss1) e1 s1 a1" +
+                                "  (ss2) e1 s1 a2" +
+                                "  s :ss1 :ss2 e2 s3 a" +
+                                "  s1 e s -" +
+                                "  s3 e s -" +
+                                "}").errors;
+                assertThat(errors, hasItems(new AnalysisError(CONFLICTING_SUPERSTATES, "s|e1")));
+
+            }
+        } // State Errors
+
+        public class TransitionErrors {
+            @Test
+            public void duplicateTransitions() throws Exception {
+                List<AnalysisError> errors = produceAst("{s e - - s e - -}").errors;
+                assertThat(errors, hasItems(new AnalysisError(DUPLICATE_TRANSITION, "s(e)")));
+            }
+
+            @Test
+            public void noDuplicateTransitions() throws Exception {
+                List<AnalysisError> errors = produceAst("{s e - -}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(DUPLICATE_TRANSITION, "s(e)"))));
+            }
+
+            @Test
+            public void abstractStatesCantBeTargets() throws Exception {
+                List<AnalysisError> errors = produceAst("{(as) e - - s e as -}").errors;
+                assertThat(errors, hasItems(new AnalysisError(ABSTRACT_STATE_USED_AS_NEXT_STATE, "s(e)->as")));
+            }
+
+            @Test
+            public void abstractStatesCanBeUsedAsSuperStates() throws Exception {
+                List<AnalysisError> errors = produceAst("{(as) e - - s:as e s -}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(ABSTRACT_STATE_USED_AS_NEXT_STATE, "s(e)->s"))));
+            }
+
+            @Test
+            public void entryAndExitActionsNotMultiplyDefined() throws Exception {
+                List<AnalysisError> errors = produceAst(
+                        "" +
+                                "{" +
+                                "  s - - - " +
+                                "  s - - -" +
+                                "  es - - -" +
+                                "  es <x - - - " +
+                                "  es <x - - -" +
+                                "  xs >x - - -" +
+                                "  xs >{x} - - -" +
+                                "}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(STATE_ACTIONS_MULTIPLY_DEFINED, "s"))));
+                assertThat(errors, not(hasItems(new AnalysisError(STATE_ACTIONS_MULTIPLY_DEFINED, "es"))));
+                assertThat(errors, not(hasItems(new AnalysisError(STATE_ACTIONS_MULTIPLY_DEFINED, "xs"))));
+            }
+
+            @Test
+            public void errorIfStateHasMultipleEntryActionDefinitions() throws Exception {
+                List<AnalysisError> errors = produceAst("{s - - - ds <x - - - ds <y - - -}").errors;
+                assertThat(errors, not(hasItems(new AnalysisError(STATE_ACTIONS_MULTIPLY_DEFINED, "s"))));
+                assertThat(errors, hasItems(new AnalysisError(STATE_ACTIONS_MULTIPLY_DEFINED, "ds")));
+            }
+
+            @Test
+            public void errorIfStateHasMultipleExitActionDefinitions() throws Exception {
+                List<AnalysisError> errors = produceAst("{ds >x - - - ds >y - -}").errors;
+                assertThat(errors, hasItems(new AnalysisError(STATE_ACTIONS_MULTIPLY_DEFINED, "ds")));
+            }
+        } // Transition Errors
+    } // Semantic Errors
+
+    public class Warnings {
         @Test
-        public void noErrorForOverriddenTransition() throws Exception {
-            List<AnalysisError> errors = produceAst(
-                    "" +
-                    "FSM: f Actions: act Initial: s" +
-                    "{" +
-                    "  (ss1) e1 s1 -" +
-                    "  s :ss1 e1 s3 a" +
-                    "  s1 e s -" +
-                    "  s3 e s -" +
-                    "}").errors;
-            assertThat(errors, not(hasItems(new AnalysisError(CONFLICTING_SUPERSTATES, "s|e1"))));
+        public void warnIfStateUsedAsBothAbstractAndConcrete() throws Exception {
+            List<AnalysisError> errors = produceAst("{(ias) e - - ias e - - (cas) e - -}").warnings;
+            assertThat(errors, not(hasItems(new AnalysisError(INCONSISTENT_ABSTRACTION, "cas"))));
+            assertThat(errors, hasItems(new AnalysisError(INCONSISTENT_ABSTRACTION, "ias")));
         }
-    }
+    } // Warnings
 }
